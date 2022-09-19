@@ -1,10 +1,7 @@
 const mongoose = require('mongoose')
 const productSchema = mongoose.Schema({
     vendorId: {
-        type: String,
-        trim: true,
-        minLength: 1,
-        maxLength: 100,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     consumersId: {
@@ -47,8 +44,10 @@ const productSchema = mongoose.Schema({
         }
     }],
     categoryId: {
-        type: Array,
-        maxLength: 3,
+        type: mongoose.Schema.Types.ObjectId,
     }
 
 })
+
+const productModel = mongoose.model('products', productSchema);
+module.exports = productModel
