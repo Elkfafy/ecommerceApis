@@ -1,11 +1,12 @@
-const mongoose = require('mongoose')
+//Modules & variables
+const mongoose = require("mongoose");
 const productSchema = mongoose.Schema({
     vendorId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
     },
     consumersId: {
-        type: Array
+        type: Array,
     },
     name: {
         type: String,
@@ -22,32 +23,48 @@ const productSchema = mongoose.Schema({
     desc: {
         type: String,
         trim: true,
-        maxLength: 500
+        maxLength: 500,
     },
     categories: {
         type: Array,
     },
-    images: [{
-        imgType: {
-            type: String,
-            trim: true,
-            minLength: 1,
-            maxLength: 30,
-            required: true,
-        },
-        loc: {
+    thumnail: {
+        type: String,
+        trim: true,
+        minLength: 1,
+        maxLength: 300,
+        default: "defaultThumnail.png",
+    },
+    images: [
+        {
             type: String,
             trim: true,
             minLength: 1,
             maxLength: 300,
-            required: true,
-        }
-    }],
+        },
+    ],
+    price: {
+        type: Number,
+        max: 999999,
+        required: true,
+        validate: function () {
+            if (this.value === "") this.value = 0;
+        },
+    },
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
-    }
+    },
+});
+//Pre
+productSchema.pre("save", function () {});
+//Methods
+productSchema.methods.toJSON = function () {
+    const product = this.toObject();
+    delete product.__v;
+    return product;
+};
+//Statics
 
-})
-
-const productModel = mongoose.model('products', productSchema);
-module.exports = productModel
+//Export
+const productModel = mongoose.model("products", productSchema);
+module.exports = productModel;

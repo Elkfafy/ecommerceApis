@@ -1,4 +1,6 @@
-const mongoose = require('mongoose')
+//Modules & Variables
+const mongoose = require("mongoose");
+//Schema
 const categorySchema = mongoose.Schema({
     name: {
         type: String,
@@ -7,8 +9,12 @@ const categorySchema = mongoose.Schema({
         maxLength: 30,
         required: true,
         unique: true,
-    }
-})
+    },
+});
+//Pre
+//Methods
+//Statics
 
-const categoryModel = mongoose.model('categories', categorySchema)
-module.exports = categoryModel
+//Export
+const categoryModel = mongoose.model("categories", categorySchema);
+module.exports = categoryModel;
