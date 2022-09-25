@@ -2,8 +2,9 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const fs = require('fs')
-const path = require('path')
+const fs = require("fs");
+const path = require("path");
+const productModule = require("./productModel");
 //Schema
 const userSchema = mongoose.Schema(
     {
@@ -63,16 +64,76 @@ const userSchema = mongoose.Schema(
                 },
             },
         ],
+        addresses: [
+            {
+                location: {
+                    type: String,
+                    trim: true,
+                    minLength: 1,
+                    maxLength: 500,
+                    required: true,
+                },
+                phoneNumber: {
+                    type: String,
+                    trim: true,
+                    minLength: 1,
+                    maxLength: 20,
+                    required: true,
+                },
+            },
+        ],
+        balance: {
+            type: Number,
+            min: 0,
+            validate: function () {
+                if (!this.value) this.value = 0;
+            },
+        },
+        actions: [
+            {
+                actionType: {
+                    type: String,
+                    trim: true,
+                    enum: ["withdraw", "purchase"],
+                    required: true,
+                },
+                value: {
+                    type: Number,
+                    min: 0,
+                    max: 999999,
+                    required: true,
+                },
+                description: {
+                    type: String,
+                    maxLength: 300,
+                },
+            },
+        ],
     },
     { timeStamp: true }
 );
+//Virtual
+userSchema.virtual("vendorProducts", {
+    ref: "products",
+    localField: "_id",
+    foreignField: "vendorId",
+});
 //Pre
 userSchema.pre("save", function () {
     if (this.isModified("password")) {
         this.password = bcrypt.hashSync(this.password, 12);
     }
 });
-
+userSchema.pre("remove", async function () {
+    //fs.unlinkSync(path.join(__dirname, "../../public", this.image))
+    await productModule.removeAll({ userId: this._id });
+});
+//Post
+userSchema.post("findOneAndDelete", async function (doc, next) {
+    if (!doc) next();
+    fs.unlinkSync(path.join(__dirname, "../../public", doc.image));
+    await productModule.removeAll({ userId: doc._id });
+});
 //Methods
 userSchema.methods.toJSON = function () {
     const user = this.toObject();
@@ -92,6 +153,12 @@ userSchema.methods.changePic = async function (file) {
     user.image = file.filename;
     await user.save();
     if (oldPic) fs.unlinkSync(path.join(__dirname, "../../public", oldPic));
+};
+userSchema.methods.addAddresses = async function (addresses) {
+    addresses.forEach(address => {
+        this.addresses = this.addresses.concat(address);
+    });
+    await this.save();
 };
 //Statics
 userSchema.statics.checkPassword = function (password, hash) {

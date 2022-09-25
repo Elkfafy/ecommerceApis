@@ -1,9 +1,11 @@
 //Require & Variables
 const userModel = require("../database/models/userModel");
+const productModel = require("../database/models/productModel");
 const { sendError, sendSuccess } = require("../handlers/sendMessage");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
+const { send } = require("process");
 //User
 class User {
     //All
@@ -13,6 +15,9 @@ class User {
             const token = await user.generateToken();
             if (req.file) {
                 await user.changePic(req.file);
+            }
+            if (req.body.addresses) {
+                await user.addAddresses(req.body.addresses);
             }
             res.status(200).send(
                 sendSuccess({ user, token }, "user has been registered")
@@ -34,22 +39,22 @@ class User {
     };
     static logout = async (req, res) => {
         try {
-            req.user.tokens = req.user.tokens.filter(t => t.token != req.token)
-            await req.user.save()
-            res.status(200).send(sendSuccess(req.user, 'logged out'))
-        } catch(e) {
-            res.status(500).send(sendError(e))
+            req.user.tokens = req.user.tokens.filter(t => t.token != req.token);
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "logged out"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
         }
-    }
+    };
     static logoutAll = async (req, res) => {
         try {
-            req.user.tokens = [] 
-            await req.user.save()
-            res.status(200).send(sendSuccess(req.user, 'logged out'))
-        } catch(e) {
-            res.status(500).send(sendError(e))
+            req.user.tokens = [];
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "logged out"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
         }
-    }
+    };
     static changePic = async (req, res) => {
         try {
             if (!req.file) throw new Error("You Should send a Picture");
@@ -114,7 +119,58 @@ class User {
             res.status(500).send(sendError(e));
         }
     };
-
+    static addAddress = async (req, res) => {
+        try {
+            req.user.addresses = req.user.addAddresses.concat(req.body);
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "address added"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
+        }
+    };
+    static editAddress = async (req, res) => {
+        try {
+            const addressIndex = req.user.addresses.findIndex(
+                address => address._id == req.params.id
+            );
+            req.user.addresses[addressIndex] = {
+                ...req.body,
+                _id: req.params.id,
+            };
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "address edited"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
+        }
+    };
+    static deleteAddress = async (req, res) => {
+        try {
+            req.user.addresses = req.user.addresses.filter(
+                address => address._id == req.params.id
+            );
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "address deleted"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
+        }
+    };
+    static charge = async (req, res) => {
+        try {
+            req.user.balance += Number(req.body.balance);
+            await req.user.save();
+            res.status(200).send(sendSuccess(req.user, "charged"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
+        }
+    };
+    static purchase = async (req, res) => {
+        try {
+            // req.body should have alist of products id , total price
+            req.body.products.forEach(product => {});
+        } catch (e) {
+            res.status(500).send(sendError(e));
+        }
+    };
     // Admin
     static all = async (req, res) => {
         try {
