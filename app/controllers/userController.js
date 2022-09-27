@@ -104,6 +104,12 @@ class User {
         }
     };
     static me = async (req, res) => {
+        
+        req.user.actions.map(async action => {
+            if (action.actionType == 'purchase') {
+                action.cart = await cartModel.findById(action.cartId)
+            }
+        });
         res.status(200).send(sendSuccess(req.user, "Data Fetched"));
     };
     static changeMyStatus = async (req, res) => {
