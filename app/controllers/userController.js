@@ -1,11 +1,8 @@
 //Require & Variables
 const userModel = require("../database/models/userModel");
-const productModel = require("../database/models/productModel");
+const cartModel = require("../database/models/cartModel");
 const { sendError, sendSuccess } = require("../handlers/sendMessage");
-const jwt = require("jsonwebtoken");
-const path = require("path");
 const fs = require("fs");
-const { send } = require("process");
 //User
 class User {
     //All
@@ -155,18 +152,39 @@ class User {
         }
     };
     static charge = async (req, res) => {
+        
+        const action = {
+            actionType: 'charge',
+            value: req.body.balance,
+            date: Date.now(),
+        }
         try {
             req.user.balance += Number(req.body.balance);
+            action.description = `Charged Successfully`
+            req.user.actions = req.user.actions.concat(action)
             await req.user.save();
             res.status(200).send(sendSuccess(req.user, "charged"));
         } catch (e) {
+            action.description = `Charged Failed`
+            req.user.actions = req.user.actions.concat(action)
+            await req.user.save();
             res.status(500).send(sendError(e));
         }
     };
     static purchase = async (req, res) => {
         try {
             // req.body should have alist of products id , total price
-            req.body.products.forEach(product => {});
+            const cart = cartModel({...req.body, userId: req.user._id})
+            const action = {
+                actionType: 'purchase',
+                value: cart.totalPrice,
+                date: Date.now(),
+                cartId: cart._id
+            }
+            req.user.actions = req.user.actions.concat(action)
+            await req.user.save()
+            await cart.save()
+            res.status(200).send(sendSuccess(req.user, 'Purchased'))
         } catch (e) {
             res.status(500).send(sendError(e));
         }
@@ -201,6 +219,11 @@ class User {
     static single = async (req, res) => {
         try {
             const user = await userModel.findById(req.params.id);
+            user.actions.map(async action => {
+                if (action.actionType == 'purchase') {
+                    action.cart = await cartModel.findById(action.cartId)
+                }
+            });
             if (!user) throw new Error("Invlid Id");
             res.status(200).send(sendSuccess(user, "user found"));
         } catch (e) {

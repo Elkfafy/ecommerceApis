@@ -1,5 +1,6 @@
 //Modules & Variables
 const mongoose = require("mongoose");
+const productModel = require('./productModel')
 //Schema
 const categorySchema = mongoose.Schema({
     name: {
@@ -28,6 +29,10 @@ categorySchema.virtual("searchProducts", {
 });
 //Pre
 // categorySchema.pre('remove', async )
+//Post
+categorySchema.post('findOneAndDelete', async function(doc) {
+    await productModel.deleteMany({category: doc.name})
+})
 //Methods
 //Statics
 

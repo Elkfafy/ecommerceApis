@@ -10,5 +10,7 @@ router.get('/search/category/:name', productController.searchProducts)
 router.get('/search/user/:id', productController.vendorProducts)
 //Vendor
 router.post('/add', auth, authVendor, productController.add )
+router.put('/edit/:id', auth, authVendor, productController.edit)
+router.delete('/delete/:id', auth, authVendor, productController.delete)
 //Export
 module.exports = router;

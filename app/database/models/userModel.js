@@ -94,19 +94,32 @@ const userSchema = mongoose.Schema(
                 actionType: {
                     type: String,
                     trim: true,
-                    enum: ["withdraw", "purchase"],
+                    enum: ["charge", "purchase"],
                     required: true,
                 },
                 value: {
                     type: Number,
                     min: 0,
-                    max: 999999,
                     required: true,
                 },
                 description: {
                     type: String,
                     maxLength: 300,
+                    required: function() {
+                        return this.actionType == 'charge'? true : false
+                    }
                 },
+                date: {
+                    type: Date,
+                    required: true,
+                },
+                cartId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    required: function() {
+                        return this.actionType == 'purchase'? true : false
+                    },
+                    ref: 'carts'
+                }
             },
         ],
     },

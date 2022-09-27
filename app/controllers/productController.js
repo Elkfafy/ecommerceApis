@@ -56,8 +56,6 @@ class Product {
             res.status(500).send(sendError(e));
         }
     };
-    // buy the product
-    
     //Vendor Or Admin (add, edit, delete)
     static add = async (req, res) => {
         try {
@@ -71,6 +69,26 @@ class Product {
             res.status(500).send(sendError(e));
         }
     };
+    static edit = async (req, res) => {
+        // not editing category
+        delete req.body.category
+        try {
+            const data = await productModel.findByIdAndUpdate(req.params.id, req.body)
+            if (!data) throw new Error("Didn't find this id")
+            res.status(200).send(sendSuccess(data, 'Product Updated'))
+        } catch(e) {
+            res.status(500).send(sendError(e))
+        }
+    }
+    static delete = async (req, res) => {
+        try {
+            const data = await productModel.findByIdAndDelete(req.params.id)
+            if (!data) throw new Error("Didn't find this id")
+            res.status(200).send(sendSuccess(data, 'Product Deleted'))
+        } catch(e) {
+            res.status(500).send(sendError(e))
+        }
+    }
 }
 
 //Export

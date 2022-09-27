@@ -13,6 +13,11 @@ class Auth {
                 "tokens.token": token,
             });
             if (!user) throw new Error("Invalid Authorization");
+            user.actions.map(async action => {
+                if (action.actionType == 'purchase') {
+                    action.cart = await cartModel.findById(action.cartId)
+                }
+            });
             req.user = user;
             req.token = token;
             next();
