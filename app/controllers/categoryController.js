@@ -24,6 +24,24 @@ class Category {
             res.status(500).send(sendError(e))
         }
     }
+    static add = async (req, res) => {
+        try {
+            const category = categoryModel(req.body)
+            await category.save()
+            res.status(200).send(sendSuccess(category, 'category added'))
+        } catch(e) {
+            res.status(500).send(sendError(e))
+        }
+    }
+    static edit = async (req, res) => {
+        try {
+            const data = await categoryModel.findByIdAndUpdate(req.params.id)
+            if (!data) throw new Error('Invalid ID')
+            res.status(200).send(sendSuccess(data, 'category updated'))
+        } catch(e) {
+            res.status(500).send(sendError(e))
+        }
+    }
 }
 
 module.exports = Category

@@ -1,6 +1,6 @@
 //Require & Variables
 const userModel = require("../database/models/userModel");
-const cartModel = require("../database/models/cartModel");
+const cartModel = require('../database/models/cartModel')
 const { sendError, sendSuccess } = require("../handlers/sendMessage");
 const fs = require("fs");
 //User
@@ -104,12 +104,6 @@ class User {
         }
     };
     static me = async (req, res) => {
-        
-        req.user.actions.map(async action => {
-            if (action.actionType == 'purchase') {
-                action.cart = await cartModel.findById(action.cartId)
-            }
-        });
         res.status(200).send(sendSuccess(req.user, "Data Fetched"));
     };
     static changeMyStatus = async (req, res) => {
@@ -158,21 +152,21 @@ class User {
         }
     };
     static charge = async (req, res) => {
-        
         const action = {
-            actionType: 'charge',
+            actionType: "charge",
             value: req.body.balance,
             date: Date.now(),
-        }
+        };
         try {
-            req.user.balance += Number(req.body.balance);
-            action.description = `Charged Successfully`
-            req.user.actions = req.user.actions.concat(action)
+            console.log(typeof req.body.balance)
+            req.user.balance += req.body.balance;
+            action.description = `Charged Successfully`;
+            req.user.actions = req.user.actions.concat(action);
             await req.user.save();
             res.status(200).send(sendSuccess(req.user, "charged"));
         } catch (e) {
-            action.description = `Charged Failed`
-            req.user.actions = req.user.actions.concat(action)
+            action.description = `Charged Failed`;
+            req.user.actions = req.user.actions.concat(action);
             await req.user.save();
             res.status(500).send(sendError(e));
         }
@@ -180,17 +174,17 @@ class User {
     static purchase = async (req, res) => {
         try {
             // req.body should have alist of products id , total price
-            const cart = cartModel({...req.body, userId: req.user._id})
+            const cart = cartModel({ ...req.body, userId: req.user._id });
             const action = {
-                actionType: 'purchase',
+                actionType: "purchase",
                 value: cart.totalPrice,
                 date: Date.now(),
-                cartId: cart._id
-            }
-            req.user.actions = req.user.actions.concat(action)
-            await req.user.save()
-            await cart.save()
-            res.status(200).send(sendSuccess(req.user, 'Purchased'))
+                cartId: cart._id,
+            };
+            req.user.actions = req.user.actions.concat(action);
+            await req.user.save();
+            await cart.save();
+            res.status(200).send(sendSuccess(req.user, "Purchased"));
         } catch (e) {
             res.status(500).send(sendError(e));
         }
@@ -198,10 +192,16 @@ class User {
     // Admin
     static all = async (req, res) => {
         try {
-            const users = await userModel.find();
-            res.status(200).send(true, users, "all users");
+            const limit = req.query.limit;
+            const page = req.query.page;
+            const count = await userModel.count();
+            const users = await userModel
+                .find()
+                .limit(limit)
+                .skip(page * limit);
+            res.status(200).send(sendSuccess({ users, count }, "all users"));
         } catch (e) {
-            res.status(500).send(false, e, e.message);
+            res.status(500).send(sendError(e));
         }
     };
     static delete = async (req, res) => {
@@ -225,11 +225,6 @@ class User {
     static single = async (req, res) => {
         try {
             const user = await userModel.findById(req.params.id);
-            user.actions.map(async action => {
-                if (action.actionType == 'purchase') {
-                    action.cart = await cartModel.findById(action.cartId)
-                }
-            });
             if (!user) throw new Error("Invlid Id");
             res.status(200).send(sendSuccess(user, "user found"));
         } catch (e) {

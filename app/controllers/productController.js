@@ -6,7 +6,6 @@ const { sendError, sendSuccess } = require("../handlers/sendMessage");
 
 //Product
 class Product {
-    
     //All (show all products(not require login)
     static all = async (req, res) => {
         try {
@@ -49,8 +48,7 @@ class Product {
             const vendor = await userModel.findById(req.params.id);
             await vendor.populate("vendorProducts");
             res.status(200).send(
-                vendor.vendorProducts,
-                "products has been found"
+                sendSuccess(vendor.vendorProducts, "products has been found")
             );
         } catch (e) {
             res.status(500).send(sendError(e));
@@ -71,24 +69,27 @@ class Product {
     };
     static edit = async (req, res) => {
         // not editing category
-        delete req.body.category
+        delete req.body.category;
         try {
-            const data = await productModel.findByIdAndUpdate(req.params.id, req.body)
-            if (!data) throw new Error("Didn't find this id")
-            res.status(200).send(sendSuccess(data, 'Product Updated'))
-        } catch(e) {
-            res.status(500).send(sendError(e))
+            const data = await productModel.findByIdAndUpdate(
+                req.params.id,
+                req.body
+            );
+            if (!data) throw new Error("Didn't find this id");
+            res.status(200).send(sendSuccess(data, "Product Updated"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
         }
-    }
+    };
     static delete = async (req, res) => {
         try {
-            const data = await productModel.findByIdAndDelete(req.params.id)
-            if (!data) throw new Error("Didn't find this id")
-            res.status(200).send(sendSuccess(data, 'Product Deleted'))
-        } catch(e) {
-            res.status(500).send(sendError(e))
+            const data = await productModel.findByIdAndDelete(req.params.id);
+            if (!data) throw new Error("Didn't find this id");
+            res.status(200).send(sendSuccess(data, "Product Deleted"));
+        } catch (e) {
+            res.status(500).send(sendError(e));
         }
-    }
+    };
 }
 
 //Export

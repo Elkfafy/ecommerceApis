@@ -67,45 +67,12 @@ const productSchema = mongoose.Schema(
     },
     { timeStamp: true }
 );
-//Pre
-productSchema.pre("save", async function () {
-    if (this.isModified("category")) {
-        const category = await categoryModel.findOne({ name: this.category });
-        if (category) {
-            category.count++;
-            await category.save();
-        } else {
-            const myCat = categoryModel({ name: this.category });
-            await myCat.save();
-        }
-    }
-});
-productSchema.pre("remove", async function () {
-    const category = await categoryModel.findOne({ name: this.category });
-    category.count--;
-    if (category.count == 0) await category.remove();
-    else await category.save();
-});
 
-//Post
-productSchema.post("findOneAndDelete", async function (doc) {
-    const category = await categoryModel.findOne({ name: doc.category });
-    category.count--;
-    if (category.count == 0) await category.remove();
-    else await category.save();
-});
 //Methods
 productSchema.methods.toJSON = function () {
     const product = this.toObject();
     delete product.__v;
     return product;
-}; // عشان امسحه لازم اتاكد اني ال vendor
-//Statics
-productSchema.statics.removeAll = async cond => {
-    const products = await productModel.find(cond);
-    products.forEach(async product => {
-        await product.remove();
-    });
 };
 
 //Export

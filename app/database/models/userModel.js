@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
-const productModule = require("./productModel");
+const cartModel = require("./cartModel");
+const productModel = require("./productModel");
 //Schema
 const userSchema = mongoose.Schema(
     {
@@ -85,6 +86,7 @@ const userSchema = mongoose.Schema(
         balance: {
             type: Number,
             min: 0,
+            default: 0,
             validate: function () {
                 if (!this.value) this.value = 0;
             },
@@ -105,21 +107,21 @@ const userSchema = mongoose.Schema(
                 description: {
                     type: String,
                     maxLength: 300,
-                    required: function() {
-                        return this.actionType == 'charge'? true : false
-                    }
+                    required: function () {
+                        return this.actionType == "charge" ? true : false;
+                    },
                 },
                 date: {
                     type: Date,
-                    required: true,
+                    default: Date.now(),
                 },
                 cartId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    required: function() {
-                        return this.actionType == 'purchase'? true : false
+                    required: function () {
+                        return this.actionType == "purchase" ? true : false;
                     },
-                    ref: 'carts'
-                }
+                    ref: "carts",
+                },
             },
         ],
     },

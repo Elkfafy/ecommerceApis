@@ -23,9 +23,14 @@ router.patch(
     upload.single("profilePic"),
     userController.changePic
 );
-router.patch("/changeStatus", auth, userController.changeMyStatus);
+router.patch("/status", auth, userController.changeMyStatus);
 router.patch("/changePass", auth, userController.changePass);
 router.delete("/delete", auth, userController.deleteMe);
+router.post('/address', auth, userController.addAddress)
+router.put('/address/:id', auth, userController.editAddress)
+router.delete('/address', auth, userController.deleteAddress)
+router.post('/charge', auth, userController.charge)
+router.post('/purchase', auth, userController.purchase)
 //Admin
 router.get("/all", auth, authAdmin, userController.all);
 router.delete("/all/:id", auth, authAdmin, userController.delete);
