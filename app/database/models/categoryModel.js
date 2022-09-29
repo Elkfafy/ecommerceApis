@@ -18,11 +18,17 @@ categorySchema.virtual("searchProducts", {
     localField: "name",
     foreignField: "category",
 });
+categorySchema.virtual("productsCount", {
+    ref: "products",
+    localField: "name",
+    foreignField: "category",
+    count: true
+});
 //Pre
 // categorySchema.pre('remove', async )
 //Post
 categorySchema.post('findOneAndDelete', async function(doc) {
-    await productModel.deleteMany({category: doc.name})
+    await productModel.removeAll({category: doc.name})
 })
 //Methods
 //Statics

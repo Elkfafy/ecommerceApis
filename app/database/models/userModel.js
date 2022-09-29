@@ -140,14 +140,14 @@ userSchema.pre("save", function () {
     }
 });
 userSchema.pre("remove", async function () {
-    //fs.unlinkSync(path.join(__dirname, "../../public", this.image))
-    await productModule.removeAll({ userId: this._id });
+    await this.changePic({filename: ''})
+    await productModel.removeAll({ userId: this._id });
 });
 //Post
 userSchema.post("findOneAndDelete", async function (doc, next) {
     if (!doc) next();
-    fs.unlinkSync(path.join(__dirname, "../../public", doc.image));
-    await productModule.removeAll({ userId: doc._id });
+    await doc.changePic({filename: ''})
+    await productModel.removeAll({ userId: doc._id });
 });
 //Methods
 userSchema.methods.toJSON = function () {
@@ -166,7 +166,6 @@ userSchema.methods.changePic = async function (file) {
     const user = this;
     const oldPic = user.image === "userDefault.png" ? null : user.image;
     user.image = file.filename;
-    await user.save();
     if (oldPic) fs.unlinkSync(path.join(__dirname, "../../public", oldPic));
 };
 userSchema.methods.addAddresses = async function (addresses) {

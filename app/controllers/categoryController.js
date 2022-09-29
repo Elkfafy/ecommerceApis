@@ -8,8 +8,14 @@ class Category {
     //All (get All Categories)
     static all = async (req, res) => {
         try {
-            const categories = await categoryModel.find()
-            res.status(200).send(sendSuccess(categories, 'Categories Fetched'))
+            const limit = req.query.limit
+            const page = req.query.page
+            const count = await categoryModel.count()
+            const categories = await categoryModel.find().limit(limit).skip(limit * page).populate('productsCount')
+            for (let i in categories) {
+                categories[i] = {...categories[i].toJSON(), count: categories[i].productsCount}
+            }
+            res.status(200).send(sendSuccess({categories, count}, 'Categories Fetched'))
         } catch(e) {
             res.status(500).send(sendError(e))
         }
@@ -17,7 +23,7 @@ class Category {
     //Admin (delete an entire category)
     static delete = async (req, res) => {
         try {
-            const data = await productModel.findByIdAndDelete(req.params.id)
+            const data = await categoryModel.findByIdAndDelete(req.params.id)
             if (!data) throw new Error('This id not found')
             res.status(200).send(sendSuccess(data, 'Category Deleted'))
         } catch(e) {

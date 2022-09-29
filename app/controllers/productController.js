@@ -9,9 +9,12 @@ class Product {
     //All (show all products(not require login)
     static all = async (req, res) => {
         try {
-            const products = await productModel.find();
+            const limit = req.query.limit
+            const page = req.query.page
+            const count = await productModel.count()
+            const products = await productModel.find().limit(limit).skip(page * limit);
             res.status(200).send(
-                sendSuccess(products, "Products has been found")
+                sendSuccess({products, count}, "Products has been found")
             );
         } catch (e) {
             res.status(500).send(sendError(e));
@@ -56,11 +59,19 @@ class Product {
     };
     //Vendor Or Admin (add, edit, delete)
     static add = async (req, res) => {
+        console.log(req.files)
         try {
             const product = productModel({
                 ...req.body,
                 vendorId: req.user._id,
             });
+            if (req.files.thumnail[0]) {
+                product.changeThumnail(req.files.thumnail[0])
+            }
+            if (req.files.images.length) {
+
+                product.changeImages(req.files.images)
+            }
             await product.save();
             res.status(200).send(sendSuccess(product, "added"));
         } catch (e) {

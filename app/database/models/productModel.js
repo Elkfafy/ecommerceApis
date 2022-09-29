@@ -1,6 +1,7 @@
 //Modules & variables
 const mongoose = require("mongoose");
-const categoryModel = require("./categoryModel");
+const fs = require('fs')
+const path = require('path')
 //Schema
 const productSchema = mongoose.Schema(
     {
@@ -67,14 +68,48 @@ const productSchema = mongoose.Schema(
     },
     { timeStamp: true }
 );
-
+//pre
+productSchema.pre('remove', async function() {
+    await this.changeThumnail({filename: ''})
+    await this.changeImages([])
+    
+})
+//post 
+productSchema.post('findOneAndDelete', async function(doc, next) {
+    if(!doc) next()
+    await doc.changeThumnail({filename: ''})
+    await doc.changeImages([])
+    
+})
 //Methods
 productSchema.methods.toJSON = function () {
     const product = this.toObject();
     delete product.__v;
     return product;
 };
-
+productSchema.methods.changeThumnail = async function(file) {
+    const oldThumnail = this.thumnail == 'defaultThumnail.jpg'? null : this.thumnail
+    this.thumnail = file.filename
+    if (oldThumnail) fs.unlinkSync(path.join(__dirname, '../../public', oldThumnail))
+}
+productSchema.methods.changeImages = async function(images) {
+    const oldImages = this.images
+    const myImages = []
+    images.forEach(image => {
+        myImages.push(image.filename)
+    })
+    this.images = myImages
+    if (oldImages.length) {
+        oldImages.forEach(image => {
+            fs.unlinkSync(path.join(__dirname, '../../public', image))
+        })
+    }
+}
+//Statics
+productSchema.statics.removeAll = async function (condition) {
+    const products = await productModel.find(condition)
+    products.forEach(async product => await product.remove())
+}
 //Export
 const productModel = mongoose.model("products", productSchema);
 module.exports = productModel;
