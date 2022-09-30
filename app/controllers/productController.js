@@ -71,7 +71,7 @@ class Product {
                 ...req.body,
                 vendorId: req.user._id,
             });
-            if (req.files.thumnailImage[0]) {
+            if (req.files.thumnailImage && req.files.thumnailImage[0]) {
                 product.changeThumnail(req.files.thumnailImage[0]);
             }
             if (req.files.imagesArr && req.files.imagesArr.length) {
