@@ -14,19 +14,32 @@ router.post(
     "/add",
     upload.fields([
         {
-            name: "thumnail",
+            name: "thumnailImage",
             maxCount: 1,
         },
         {
-            name: "images",
+            name: "imagesArr",
         },
     ]),
     auth,
-    authAdmin,
     productController.add
 );
-router.put("/edit/:id", auth, authAdmin, productController.edit);
-router.delete("/delete/:id", auth, authAdmin, productController.delete);
+router.put(
+    "/edit/:id",
+    upload.fields([
+        {
+            name: "thumnailImage",
+            maxCount: 1,
+        },
+        {
+            name: "imagesArr",
+        },
+    ]),
+    auth,
+    authVendor,
+    productController.edit
+);
+router.delete("/delete/:id", auth, authVendor, productController.delete);
 //Admin
 //Export
 module.exports = router;

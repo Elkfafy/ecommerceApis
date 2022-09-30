@@ -90,7 +90,12 @@ productSchema.methods.toJSON = function () {
 productSchema.methods.changeThumnail = async function(file) {
     const oldThumnail = this.thumnail == 'defaultThumnail.jpg'? null : this.thumnail
     this.thumnail = file.filename
-    if (oldThumnail) fs.unlinkSync(path.join(__dirname, '../../public', oldThumnail))
+    try {
+        if (oldThumnail) fs.unlinkSync(path.join(__dirname, '../../public', oldThumnail))
+
+    } catch(e) {
+
+    }
 }
 productSchema.methods.changeImages = async function(images) {
     const oldImages = this.images
@@ -101,7 +106,12 @@ productSchema.methods.changeImages = async function(images) {
     this.images = myImages
     if (oldImages.length) {
         oldImages.forEach(image => {
-            fs.unlinkSync(path.join(__dirname, '../../public', image))
+            try {
+
+                fs.unlinkSync(path.join(__dirname, '../../public', image))
+            } catch(e) {
+                
+            }
         })
     }
 }

@@ -1,5 +1,6 @@
 //Require & Variables
 const jwt = require("jsonwebtoken");
+const productModel = require("../database/models/productModel");
 const userModel = require("../database/models/userModel");
 const { sendMessage, sendError } = require("../handlers/sendMessage");
 
@@ -32,11 +33,21 @@ class Auth {
 
     //Check If The Login User Is a Vendor
     static authVendor = async (req, res, next) => {
-        if (!["admin", "vendor"].includes(req.user.userType))
-            res.status(401).send(
-                sendMessage(false, null, "This User Should Be Admin Or Vendor!")
-            );
-        next();
+        // userType == vendor && req.params.id => product that have the same user id as vendor id
+        try {
+            let product
+            if (req.user.userType == 'vendor') {
+                product = await productModel.findOne({_id: req.params.id, vendorId: req.user._id})
+            }
+            else if (req.user.userType == 'admin') {
+                product = await productModel.findById(req.params.id)
+            }
+            if (!product) throw new Error("You aren't Authorized")
+            req.product = product
+            next()
+        } catch(e) {
+            res.status(500).send(sendError(e))
+        }
     };
 }
 

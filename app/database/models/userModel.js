@@ -165,6 +165,7 @@ userSchema.methods.generateToken = async function () {
 userSchema.methods.changePic = async function (file) {
     const user = this;
     const oldPic = user.image === "userDefault.png" ? null : user.image;
+    console.log(file.filename)
     user.image = file.filename;
     if (oldPic) fs.unlinkSync(path.join(__dirname, "../../public", oldPic));
 };

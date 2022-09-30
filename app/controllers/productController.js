@@ -9,12 +9,15 @@ class Product {
     //All (show all products(not require login)
     static all = async (req, res) => {
         try {
-            const limit = req.query.limit
-            const page = req.query.page
-            const count = await productModel.count()
-            const products = await productModel.find().limit(limit).skip(page * limit);
+            const limit = req.query.limit;
+            const page = req.query.page;
+            const count = await productModel.count();
+            const products = await productModel
+                .find()
+                .limit(limit)
+                .skip(page * limit);
             res.status(200).send(
-                sendSuccess({products, count}, "Products has been found")
+                sendSuccess({ products, count }, "Products has been found")
             );
         } catch (e) {
             res.status(500).send(sendError(e));
@@ -59,18 +62,18 @@ class Product {
     };
     //Vendor Or Admin (add, edit, delete)
     static add = async (req, res) => {
-        console.log(req.files)
         try {
+            if (!["admin", "vendor"].includes(req.user.userType))
+                throw new Error("You aren't Authorized");
             const product = productModel({
                 ...req.body,
                 vendorId: req.user._id,
             });
-            if (req.files.thumnail[0]) {
-                product.changeThumnail(req.files.thumnail[0])
+            if (req.files.thumnailImage[0]) {
+                product.changeThumnail(req.files.thumnailImage[0]);
             }
-            if (req.files.images.length) {
-
-                product.changeImages(req.files.images)
+            if (req.files.imagesArr && req.files.imagesArr.length) {
+                product.changeImages(req.files.imagesArr);
             }
             await product.save();
             res.status(200).send(sendSuccess(product, "added"));
@@ -79,15 +82,19 @@ class Product {
         }
     };
     static edit = async (req, res) => {
-        // not editing category
-        delete req.body.category;
         try {
-            const data = await productModel.findByIdAndUpdate(
-                req.params.id,
-                req.body
-            );
-            if (!data) throw new Error("Didn't find this id");
-            res.status(200).send(sendSuccess(data, "Product Updated"));
+            console.log(req.body)
+            Object.keys(req.body).forEach(key => {
+                req.product[key] = req.body[key];
+            });
+            if (req.files.thumnailImage && req.files.thumnailImage[0]) {
+                req.product.changeThumnail(req.files.thumnailImage[0]);
+            }
+            if (req.files.imagesArr && req.files.imagesArr.length) {
+                req.product.changeImages(req.files.imagesArr);
+            }
+            await req.product.save();
+            res.status(200).send(sendSuccess(req.product, "Product Updated"));
         } catch (e) {
             res.status(500).send(sendError(e));
         }

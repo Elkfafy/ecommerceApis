@@ -71,8 +71,8 @@ class User {
                     req.user[key] = req.body[key];
                 }
             }
-            await req.user.save();
             if (req.file) await req.user.changePic(req.file);
+            await req.user.save();
             res.status(200).send(sendSuccess(req.user, "Edited"));
         } catch (e) {
             res.status(500).send(sendError(e));
