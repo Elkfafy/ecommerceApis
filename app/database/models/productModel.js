@@ -68,6 +68,13 @@ const productSchema = mongoose.Schema(
     },
     { timeStamp: true }
 );
+//Virtuals
+productSchema.virtual('vendor', {
+    ref: 'users',
+    localField: 'vendorId',
+    foreignField: '_id',
+    justOne: true
+})
 //pre
 productSchema.pre('remove', async function() {
     await this.changeThumnail({filename: ''})
@@ -110,7 +117,7 @@ productSchema.methods.changeImages = async function(images) {
 
                 fs.unlinkSync(path.join(__dirname, '../../public', image))
             } catch(e) {
-                
+
             }
         })
     }

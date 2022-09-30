@@ -26,9 +26,11 @@ class Product {
     //show single(not require login)
     static single = async (req, res) => {
         try {
-            const product = await productModel.findById(req.params.id);
+            const product = await productModel.findById(req.params.id).populate('vendor');
+            const container = {...product.toJSON(), vendorName: product.vendor.name}
+            // console.log(container)
             res.status(200).send(
-                sendSuccess(product, "product has been found")
+                sendSuccess(container, "product has been found")
             );
         } catch (e) {
             res.status(500).send(sendError(e));
